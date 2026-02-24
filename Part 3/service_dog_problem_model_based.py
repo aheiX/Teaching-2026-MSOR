@@ -209,5 +209,5 @@ if __name__ == "__main__":
     policy_evaluation(states, policy, reward, transition_prob, discount=0.9)
     
     # Value iteration
-    print("Value iteration (optimal policy)")
-    value_iteration(states, reward, transition_prob, discount=0.9)
+    # print("Value iteration (optimal policy)")
+    # value_iteration(states, reward, transition_prob, discount=0.9)

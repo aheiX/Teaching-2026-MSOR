@@ -317,121 +317,8 @@ class PolicyRandom():
         action = str(env.np_random.choice(legal_actions))
 
         return action
-
-
-class PolicyTD():
-
-    def __init__(self):
         
-        # Intialize lookup table for state-action values (Q-table)
-        self.Q = dict()
-
-    def _get_action(self, env, epsilon=0):
-        """Returns an action based on and epsilon-greedy policy.  
-
-        Args:
-            env: The environment action is taken in
-            epsilon: The probability of a taking a random action. If epsilon=0, the policy behaves greedy.
-
-        Returns:
-            A legal action 
-        """
-        
-        # Get legal actions for current period of the environment
-        legal_actions = env._get_legal_actions()
-
-        if epsilon > 0 and env.np_random.random() < epsilon:
-            # Draw action among all legal actions with equal probability
-            action = str(env.np_random.choice(legal_actions))
-        else:
-            # Get state
-            state = env._get_obs()
-            
-            # Initialize Q values if not available
-            if state not in self.Q:
-                self.Q[state] = {}
-            for a in legal_actions:
-                if a not in self.Q[state]:
-                    self.Q[state][a] = 0
-
-            # Select action with the highest value             
-            action = max(self.Q[state], key=self.Q[state].get)
-        
-        return action
-
-    def _learn(self, env, discount, epsilon, learning_rate, num_updates, on_policy: Optional[bool] = True, seed: Optional[int] = None):
-        """Learning of the (optimal) state-action values (=Q values). 
-           The learned values are stored in the dictionary self.Q
-
-        Args:
-            env: a reinforcement learning environment, must have get_states(), reset(), and step() methods.
-            discount: discount factor, must be 0 <= discount <= 1.
-            epsilon: exploration rate for the e-greedy policy, must be 0 <= epsilon < 1.
-            learning_rate: the learning rate when update step size
-            num_updates: number of updates to the value function. Must be integer. 
-            on_policy: =True if behavior policy and target policy are the same (SARSA), =False if target policy is greedy (Q-Learning)
-            seed: The seed for the learning phase (this will be passed on the the environment)
-
-        """
-
-        assert 0.0 <= discount <= 1.0
-        assert 0.0 <= epsilon <= 1.0
-        assert isinstance(num_updates, int)
-
-        # Initialize state-action value function
-        self.Q = dict()
-
-        # Initialize conuter for number of updates
-        i = 0
-
-        # Reset environment
-        state, info = env.reset(seed=seed)
-
-        while i < num_updates:
-
-            # Get action by following the policy.
-            action = self._get_action(env, epsilon)
-
-            # Take the action in the environment and observe successor state and reward.
-            state_tp1, reward, terminated, truncated, info = env.step(action)
-
-            # Compute TD target (first part, immediate reward)       
-            delta = reward
-
-            if not terminated and not truncated:
-                # TP 1 action: On-policy = SARSA, Off-Policy = Q-Learning
-                action_tp1 = self._get_action(env, epsilon) if on_policy else self._get_action(env, epsilon=0)
-
-                # Compute TD target (second part, downstream reward)
-                self.Q[state_tp1] = self.Q.get(state_tp1, {})
-                self.Q[state_tp1][action_tp1] = self.Q[state_tp1].get(action_tp1, 0)
-                delta += discount * self.Q[state_tp1][action_tp1]
-
-            # Update Q value
-            self.Q[state] = self.Q.get(state, {})
-            self.Q[state][action] = self.Q[state].get(action, 0) + learning_rate * (delta - self.Q[state].get(action, 0))
-
-            if terminated or truncated:
-                # Update seed
-                seed = seed if seed is None else seed + 1
-
-                # Reset environment
-                state, info = env.reset(seed=seed)
-            else:
-                # Update state
-                state = state_tp1
-
-            # Update counter
-            i += 1
-
-        # Round Q values and print results
-        for s in self.Q:
-            for a in self.Q[s]:
-                self.Q[s][a] = round(self.Q[s][a], 4)
-
-        print(f"Learned state-action values (Q): {self.Q}")
-
-
+    
 class PolicySARSA():
 
     def __init__(self):
@@ -713,7 +600,7 @@ def td_learning(policy, env, discount, epsilon, learning_rate, num_updates, on_p
 
         # Update counter
         i += 1
-        print(f"Q after {i} iterations: {policy.Q}")
+        # print(f"Q after {i} iterations: {policy.Q}")
 
 
 if __name__ == "__main__":
@@ -728,17 +615,17 @@ if __name__ == "__main__":
     # Random policy
     print("RANDOM POLICY")
     policy = PolicyRandom()
-    # mc_policy_evaluation(env, policy, discount=0.9, num_episodes=1000, first_visit=True, seed=2506)
+    mc_policy_evaluation(env, policy, discount=0.9, num_episodes=1000, first_visit=True, seed=2506)
     
     # SARSA
-    print("TD SARSA")
-    policy = PolicySARSA()
-    policy._learn(env, discount=0.9, epsilon=0.4, learning_rate=0.01, num_updates=500, seed=2506)
-    print(policy.Q)
+    # print("TD SARSA")
+    # policy = PolicySARSA()
+    # policy._learn(env, discount=0.9, epsilon=0.4, learning_rate=0.01, num_updates=500, seed=2506)
+    # print(policy.Q)
     # mc_policy_evaluation(env, policy, discount=0.9, num_episodes=1000, first_visit=True, seed=2506)
 
     # Q-Learning
-    print("TD Q-Learning")
-    policy = PolicyQLearning()
+    # print("TD Q-Learning")
+    # policy = PolicyQLearning()
     # policy._learn(env, discount=0.9, epsilon=0.4, learning_rate=0.01, num_updates=20000, seed=2506)
     # mc_policy_evaluation(env, policy, discount=0.9, num_episodes=1000, first_visit=True, seed=2506)
